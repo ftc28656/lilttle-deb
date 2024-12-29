@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.localization.localizers;
 
+import com.acmerobotics.roadrunner.SafePathBuilder;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -73,7 +74,7 @@ public class OTOSLocalizer extends Localizer {
           "SparkFunOTOS Corrected" in your robot config
          */
         // TODO: replace this with your OTOS port
-        otos = hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
+        otos = hardwareMap.get(SparkFunOTOS.class, "otos");
 
         otos.setLinearUnit(DistanceUnit.INCH);
         otos.setAngularUnit(AngleUnit.RADIANS);
@@ -82,11 +83,11 @@ public class OTOSLocalizer extends Localizer {
         // For the OTOS, left/right is the y axis and forward/backward is the x axis, with left being
         // positive y and forward being positive x. PI/2 radians is facing forward, and clockwise
         // rotation is negative rotation.
-        otos.setOffset(new SparkFunOTOS.Pose2D(0,0,Math.PI / 2));
+        otos.setOffset(new SparkFunOTOS.Pose2D(-38.4/25.4, 37.407/25.4, -Math.PI/2.0));
 
         // TODO: replace these with your tuned multipliers
-        otos.setLinearScalar(1.0);
-        otos.setAngularScalar(1.0);
+        otos.setLinearScalar(24.0/22.5);
+        otos.setAngularScalar(3600.0/3605.71);
 
         otos.calibrateImu();
         otos.resetTracking();

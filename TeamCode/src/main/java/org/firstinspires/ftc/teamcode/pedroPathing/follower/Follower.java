@@ -75,7 +75,7 @@ public class Follower {
 
     private DriveVectorScaler driveVectorScaler;
 
-    private PoseUpdater poseUpdater;
+    private PoseUpdater     poseUpdater;
     private DashboardPoseTracker dashboardPoseTracker;
 
     private Pose closestPose;
