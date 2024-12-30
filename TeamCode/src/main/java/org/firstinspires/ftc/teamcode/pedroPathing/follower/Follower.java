@@ -487,6 +487,12 @@ public class Follower {
      */
     public void startTeleopDrive() {
         breakFollowing();
+
+        // brake in teleop
+        for (DcMotorEx motor : motors) {
+            motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
+
         teleopDrive = true;
     }
 
