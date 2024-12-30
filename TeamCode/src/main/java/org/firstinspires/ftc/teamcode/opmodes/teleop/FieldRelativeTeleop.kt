@@ -11,15 +11,15 @@ import org.firstinspires.ftc.teamcode.pedroPathing.localization.Pose
 @TeleOp(name = "Field-Relative Teleop", group = "Teleop")
 class FieldRelativeTeleop : OpMode() {
     private lateinit var follower : Follower
-    private lateinit var arm : ArmSubsystem
+//    private lateinit var arm : ArmSubsystem
     private val startPose = Pose(0.0, 0.0, 0.0)
 
     /** This method is call once when init is played, it initializes the follower and subsystems  */
     override fun init() {
         follower = Follower(hardwareMap)
         follower.setStartingPose(startPose)
-        arm = ArmSubsystem(hardwareMap)
-        arm.init()
+//        arm = ArmSubsystem(hardwareMap)
+//        arm.init()
     }
 
     /** This method is called continuously after Init while waiting to be started.  */
@@ -47,29 +47,29 @@ class FieldRelativeTeleop : OpMode() {
             false
         )
         follower.update()
-        arm.update()
+//        arm.update()
 
        // TODO: this is just a sample, make it whatever you want
         if (gamepad1.a) {
-            arm.targetPosition = ArmPositions.SAMPLE_INTAKE
+//            arm.targetPosition = ArmPositions.SAMPLE_INTAKE
         }
 
         if (gamepad1.b) {
-            arm.targetPosition = ArmPositions.SAMPLE_INTAKE
+//            arm.targetPosition = ArmPositions.SAMPLE_INTAKE
         }
 
         if (gamepad1.right_bumper) {
-            when(arm.intakeState) {
-                IntakeStates.INTAKING -> {
-                    arm.intakeState = IntakeStates.STOPPED
-                }
-                IntakeStates.OUTTAKING -> {
-                    arm.intakeState = IntakeStates.STOPPED
-                }
-                IntakeStates.STOPPED -> {
-                    arm.intakeState = IntakeStates.INTAKING
-                }
-            }
+//            when(arm.intakeState) {
+//                IntakeStates.INTAKING -> {
+//                    arm.intakeState = IntakeStates.STOPPED
+//                }
+//                IntakeStates.OUTTAKING -> {
+//                    arm.intakeState = IntakeStates.STOPPED
+//                }
+//                IntakeStates.STOPPED -> {
+//                    arm.intakeState = IntakeStates.INTAKING
+//                }
+//            }
         }
 
         /* This could be paired with a PIDF to set the target position of the lift in teleop.
@@ -92,9 +92,9 @@ class FieldRelativeTeleop : OpMode() {
         telemetry.addData("Heading in Degrees", Math.toDegrees(follower.pose.heading))
 
         /* Telemetry Outputs of our ArmSubsystem */
-        telemetry.addData("Arm Target Position", arm.targetPosition.toString())
-        telemetry.addData("Intake State", arm.intakeState.toString())
-        telemetry.addData("Intake Element", arm.intakeElement.toString())
+//        telemetry.addData("Arm Target Position", arm.targetPosition.toString())
+//        telemetry.addData("Intake State", arm.intakeState.toString())
+//        telemetry.addData("Intake Element", arm.intakeElement.toString())
 
         /* Update Telemetry to the Driver Hub */
         telemetry.update()
