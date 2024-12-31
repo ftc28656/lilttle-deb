@@ -2,9 +2,6 @@ package org.firstinspires.ftc.teamcode.opmodes.teleop
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
-import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.ArmPositions
-import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.ArmSubsystem
-import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.IntakeStates
 import org.firstinspires.ftc.teamcode.pedroPathing.follower.Follower
 import org.firstinspires.ftc.teamcode.pedroPathing.localization.Pose
 
@@ -12,7 +9,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.localization.Pose
 class FieldRelativeTeleop : OpMode() {
     private lateinit var follower : Follower
 //    private lateinit var arm : ArmSubsystem
-    private val startPose = Pose(0.0, 0.0, 0.0)
+//    private val startPose = Pose(0.0, 0.0, 0.0)
+//    private val startPose = Pose(9.0, 111.0, Math.toRadians(270.0))
+private val startPose = Pose(8.5, 103.0, Math.toRadians(270.0))
 
     /** This method is call once when init is played, it initializes the follower and subsystems  */
     override fun init() {

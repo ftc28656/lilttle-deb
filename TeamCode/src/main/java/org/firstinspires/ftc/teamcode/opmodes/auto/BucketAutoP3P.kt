@@ -19,15 +19,16 @@ class BucketAutoP3P : OpMode() {
     private var pathTimer = Timer()
     private var opmodeTimer = Timer()
     private var pathState = BucketPathStates.START
-    lateinit var arm: ArmSubsystem
+//    lateinit var arm: ArmSubsystem
 
-    private val startPose = Pose(9.0, 111.0, Math.toRadians(270.0))
-    private val scorePose = Pose(14.0, 129.0, Math.toRadians(315.0))
-    private val pickupSample1Pose = Pose(37.0, 121.0, Math.toRadians(0.0))
-    private val pickupSample2Pose = Pose(43.0, 130.0, Math.toRadians(0.0))
-    private val pickupSample3Pose = Pose(49.0, 135.0, Math.toRadians(0.0))
-    private val parkPose = Pose(60.0, 98.0, Math.toRadians(90.0))
-    private val parkControlPose = Pose(60.0, 98.0, Math.toRadians(90.0))
+    private val startPose = Pose(8.5, 103.0, Math.toRadians(270.0))
+    private val scorePose = Pose(16.0, 124.0, Math.toRadians(315.0))
+    private val pickupSample1Pose = Pose(23.0, 120.0, Math.toRadians(0.0))
+    private val pickupSample2Pose = Pose(23.0, 124.0, Math.toRadians(20.0))
+    private val pickupSample3Pose = Pose(23.0, 124.0, Math.toRadians(36.0))
+    private val parkPose = Pose(60.0, 96.0, Math.toRadians(270.0))
+    private val parkControl1 = Point(60.0, 124.0)
+    private val parkControl2 = Point(60.0, 124.0)
 
     private lateinit var scorePreload: PathChain
     private lateinit var park: PathChain
@@ -100,8 +101,8 @@ class BucketAutoP3P : OpMode() {
 
         /* This is our park pathChain. We are using a BezierCurve with 3 points, which is a curved line that is curved based off of the control point */
         park = follower.pathBuilder()
-            .addPath(BezierCurve(Point(scorePose), Point(parkControlPose), Point(parkPose)))
-            .setLinearHeadingInterpolation(scorePose.heading, parkPose.heading)
+            .addPath(BezierCurve(Point(scorePose), parkControl1, parkControl2, Point(parkPose)))
+            .setTangentHeadingInterpolation()
             .build()
     }
 
@@ -117,56 +118,56 @@ class BucketAutoP3P : OpMode() {
             BucketPathStates.SCORING_PRELOAD ->
                 if (isCloseToTargetPose(scorePose))
                     stateTransition(BucketPathStates.PICKUP_SAMPLE_1) {
-                        arm.targetPosition = ArmPositions.SCORE_BUCKET_HIGH
+//                        arm.targetPosition = ArmPositions.SCORE_BUCKET_HIGH
                         follower.followPath(pickupSample1, true)
                     }
 
             BucketPathStates.PICKUP_SAMPLE_1 ->
                 if (isCloseToTargetPose(pickupSample1Pose))
                     stateTransition(BucketPathStates.SCORING_SAMPLE_1) {
-                        arm.targetPosition =ArmPositions.SAMPLE_INTAKE
+//                        arm.targetPosition =ArmPositions.SAMPLE_INTAKE
                         follower.followPath(scoreSample1, true)
                     }
 
             BucketPathStates.SCORING_SAMPLE_1 ->
                 if(isCloseToTargetPose(scorePose))
                     stateTransition(BucketPathStates.PICKUP_SAMPLE_2) {
-                    arm.targetPosition = ArmPositions.SCORE_BUCKET_HIGH
+//                    arm.targetPosition = ArmPositions.SCORE_BUCKET_HIGH
                     follower.followPath(pickupSample2, true)
                 }
 
             BucketPathStates.PICKUP_SAMPLE_2 ->
                 if(isCloseToTargetPose(pickupSample2Pose))
                     stateTransition(BucketPathStates.SCORING_SAMPLE_2) {
-                        arm.targetPosition = ArmPositions.SAMPLE_INTAKE
+//                        arm.targetPosition = ArmPositions.SAMPLE_INTAKE
                         follower.followPath(scoreSample2, true)
                     }
 
             BucketPathStates.SCORING_SAMPLE_2 ->
                 if(isCloseToTargetPose(scorePose))
                     stateTransition(BucketPathStates.PICKUP_SAMPLE_3) {
-                        arm.targetPosition = ArmPositions.SCORE_BUCKET_HIGH
+//                        arm.targetPosition = ArmPositions.SCORE_BUCKET_HIGH
                         follower.followPath(pickupSample3, true)
                     }
 
             BucketPathStates.PICKUP_SAMPLE_3 ->
                 if(isCloseToTargetPose(pickupSample3Pose))
                     stateTransition(BucketPathStates.SCORING_SAMPLE_3) {
-                        arm.targetPosition = ArmPositions.SAMPLE_INTAKE
+//                        arm.targetPosition = ArmPositions.SAMPLE_INTAKE
                         follower.followPath(scoreSample3, true)
                     }
 
             BucketPathStates.SCORING_SAMPLE_3 ->
                 if(isCloseToTargetPose(scorePose))
                     stateTransition(BucketPathStates.PARKING) {
-                        arm.targetPosition = ArmPositions.SCORE_BUCKET_HIGH
+//                        arm.targetPosition = ArmPositions.SCORE_BUCKET_HIGH
                         follower.followPath(park, true)
                     }
 
             BucketPathStates.PARKING ->
                 if(isCloseToTargetPose(parkPose))
                     stateTransition(BucketPathStates.PARKING) {
-                        arm.targetPosition = ArmPositions.PARK
+//                        arm.targetPosition = ArmPositions.PARK
                     }
         }
     }
@@ -202,14 +203,23 @@ class BucketAutoP3P : OpMode() {
 
         buildPaths()
 
-        arm = ArmSubsystem(hardwareMap)
-        arm.init()
+//        arm = ArmSubsystem(hardwareMap)
+//        arm.init()
+    }
+
+    override fun init_loop() {
+        follower.update()
+        telemetry.addData("path state", pathState.toString())
+        telemetry.addData("x", follower.pose.x)
+        telemetry.addData("y", follower.pose.y)
+        telemetry.addData("heading", follower.pose.heading)
+        telemetry.update()
     }
 
     override fun loop() {
         // These loop the movements of the robot
         follower.update()
-        arm.update()
+//        arm.update()
         autonomousPathUpdate()
 
         // Feedback to Driver Hub
