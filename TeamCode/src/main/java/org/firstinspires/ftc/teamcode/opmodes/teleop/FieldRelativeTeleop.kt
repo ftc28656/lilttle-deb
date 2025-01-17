@@ -11,7 +11,7 @@ class FieldRelativeTeleop : OpMode() {
 //    private lateinit var arm : ArmSubsystem
 //    private val startPose = Pose(0.0, 0.0, 0.0)
 //    private val startPose = Pose(9.0, 111.0, Math.toRadians(270.0))
-private val startPose = Pose(8.5, 103.0, Math.toRadians(270.0))
+private val startPose = Pose(7.5, 112.5, Math.toRadians(270.0))
 
     /** This method is call once when init is played, it initializes the follower and subsystems  */
     override fun init() {

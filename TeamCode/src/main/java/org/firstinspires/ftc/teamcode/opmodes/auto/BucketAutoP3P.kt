@@ -21,7 +21,7 @@ class BucketAutoP3P : OpMode() {
     private var pathState = BucketPathStates.START
 //    lateinit var arm: ArmSubsystem
 
-    private val startPose = Pose(8.5, 103.0, Math.toRadians(270.0))
+    private val startPose = Pose(7.5, 112.5, Math.toRadians(270.0))
     private val scorePose = Pose(16.0, 124.0, Math.toRadians(315.0))
     private val pickupSample1Pose = Pose(23.0, 120.0, Math.toRadians(0.0))
     private val pickupSample2Pose = Pose(23.0, 124.0, Math.toRadians(20.0))
