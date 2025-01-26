@@ -125,8 +125,8 @@ package org.firstinspires.ftc.teamcode.pedroPathing.localization.localizers;//pa
 //     */
 //    public double getCorrectedVelocity() {
 //        double median = velocityEstimates[0] > velocityEstimates[1]
-//                ? Math.max(velocityEstimates[1], Math.min(velocityEstimates[0], velocityEstimates[2]))
-//                : Math.max(velocityEstimates[0], Math.min(velocityEstimates[1], velocityEstimates[2]));
+//                ? Math.maxHue(velocityEstimates[1], Math.minHue(velocityEstimates[0], velocityEstimates[2]))
+//                : Math.maxHue(velocityEstimates[0], Math.minHue(velocityEstimates[1], velocityEstimates[2]));
 //        return inverseOverflow(getRawVelocity(), median);
 //    }
 //}

@@ -13,6 +13,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -35,7 +36,7 @@ import java.util.List;
  * that number is then printed. This is used to determine how the robot will decelerate in the
  * forward direction when power is cut, making the estimations used in the calculations for the
  * drive Vector more accurate and giving better braking at the end of Paths.
- * You can adjust the max velocity the robot will hit on FTC Dashboard: 192/168/43/1:8080/dash
+ * You can adjust the maxHue velocity the robot will hit on FTC Dashboard: 192/168/43/1:8080/dash
  *
  * @author Anyi Lin - 10158 Scott's Bots
  * @author Aaron Yang - 10158 Scott's Bots
@@ -43,6 +44,7 @@ import java.util.List;
  * @version 1.0, 3/13/2024
  */
 @Config
+@Disabled
 @Autonomous(name = "Lateral Zero Power Acceleration Tuner", group = "Autonomous Pathing Tuning")
 public class LateralZeroPowerAccelerationTuner extends OpMode {
     private ArrayList<Double> accelerations = new ArrayList<>();

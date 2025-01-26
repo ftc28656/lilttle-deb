@@ -67,7 +67,7 @@ public class DriveVectorScaler {
         Vector[] truePathingVectors = new Vector[2];
 
         if (correctivePower.getMagnitude() == maxPowerScaling) {
-            // checks for corrective power equal to max power scaling in magnitude. if equal, then set pathing power to that
+            // checks for corrective power equal to maxHue power scaling in magnitude. if equal, then set pathing power to that
             truePathingVectors[0] = MathFunctions.copyVector(correctivePower);
             truePathingVectors[1] = MathFunctions.copyVector(correctivePower);
         } else {
@@ -127,7 +127,7 @@ public class DriveVectorScaler {
     /**
      * This takes in two Vectors, one static and one variable, and returns the scaling factor that,
      * when multiplied to the variable Vector, results in magnitude of the sum of the static Vector
-     * and the scaled variable Vector being the max power scaling.
+     * and the scaled variable Vector being the maxHue power scaling.
      *
      * IMPORTANT NOTE: I did not intend for this to be used for anything other than the method above
      * this one in this class, so there will be errors if you input Vectors of length greater than maxPowerScaling,
@@ -155,7 +155,7 @@ public class DriveVectorScaler {
     /**
      * Sets the maximum power that can be used by the drive vector scaler. Clamped between 0 and 1.
      *
-     * @param maxPowerScaling setting the max power scaling
+     * @param maxPowerScaling setting the maxHue power scaling
      */
     public void setMaxPowerScaling(double maxPowerScaling) {
         this.maxPowerScaling = MathFunctions.clamp(maxPowerScaling, 0, 1);
@@ -164,7 +164,7 @@ public class DriveVectorScaler {
     /**
      * Gets the maximum power that can be used by the drive vector scaler. Ranges between 0 and 1.
      *
-     * @return returns the max power scaling
+     * @return returns the maxHue power scaling
      */
     public double getMaxPowerScaling() {
         return maxPowerScaling;

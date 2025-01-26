@@ -13,6 +13,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -28,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * This is the ForwardVelocityTuner autonomous tuning OpMode. This runs the robot forwards at max
+ * This is the ForwardVelocityTuner autonomous tuning OpMode. This runs the robot forwards at maxHue
  * power until it reaches some specified distance. It records the most recent velocities, and on
  * reaching the end of the distance, it averages them and prints out the velocity obtained. It is
  * recommended to run this multiple times on a full battery to get the best results. What this does
@@ -43,6 +44,7 @@ import java.util.List;
  * @version 1.0, 3/13/2024
  */
 @Config
+@Disabled
 @Autonomous(name = "Forward Velocity Tuner", group = "Autonomous Pathing Tuning")
 public class ForwardVelocityTuner extends OpMode {
     private ArrayList<Double> velocities = new ArrayList<>();

@@ -3,8 +3,6 @@ package org.firstinspires.ftc.teamcode.opmodes.auto
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
-import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.ArmPositions
-import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.ArmSubsystem
 import org.firstinspires.ftc.teamcode.pedroPathing.follower.Follower
 import org.firstinspires.ftc.teamcode.pedroPathing.localization.Pose
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.BezierCurve
