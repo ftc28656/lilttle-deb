@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.intake.IntakeStates
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.intake.IntakeSubsysten
+import org.firstinspires.ftc.teamcode.pedroPathing.util.Timer
 
 
 @TeleOp(name = "Intake Servo Tester", group = "Test")
@@ -21,6 +22,7 @@ class IntakeServoTester : OpMode() {
     }
 
     override fun loop() {
+
         if(gamepad1.a)
             intake.state = IntakeStates.INTAKING
 
@@ -38,6 +40,11 @@ class IntakeServoTester : OpMode() {
         mt.addLine("> A to intake, B to outtake, X to stop, Y to Hold")
         mt.addData("Intake State", intake.state.toString())
         mt.addData("Intake Element", intake.element.toString())
+        mt.addData("Intake Servo Pos", intake.servoPosition)
+        mt.addData("Intake color", intake.hsv)
+        mt.addData("Intake distance", intake.distance)
+
+
         mt.update()
 
 

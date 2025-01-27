@@ -69,6 +69,10 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
 
     val isHome : Boolean
         get() = !magLimit.state
+    var targetTolerance = 5.0 // degrees
+    val isAtTargetState : Boolean
+        get() = abs(shoulderAngle - targetShoulderAngle) < targetTolerance
+                && abs(elbowAngle - targetElbowAngle) < targetTolerance
 
     fun init() {
         // shoulder
@@ -91,13 +95,11 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
 
         // mag limit
         magLimit = hardwareMap.get<DigitalChannel>(DigitalChannel::class.java, "maglimit")
-
     }
     private fun resetShoulderEncoder() {
         shoulderEncoderMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER)
         shoulderEncoderMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER)
     }
-
     fun update() {
         updateTargetsForArmState(state)
 
@@ -113,14 +115,12 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
         leftElbowServo.position = position
         rightElbowServo.position = position
     }
-
     private fun servoAngleToPosition(angle: Double) : Double {
         // derived empirically
         val m = -2.61E-03
         val b = 7.22E-01
         return m * angle + b
     }
-
     private fun updateTargetsForArmState(state: ArmStates) {
         when (state) {
             ArmStates.START -> {

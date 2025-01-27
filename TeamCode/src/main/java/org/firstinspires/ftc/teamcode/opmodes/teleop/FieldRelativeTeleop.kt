@@ -135,7 +135,6 @@ class FieldRelativeTeleop : OpMode() {
                 else -> RearLightStates.EMPTY_AND_OFF
             }
         }
-
     }
     private fun updateTelemetry() {
         val loopTime = loopTimer.elapsedTime
@@ -144,6 +143,7 @@ class FieldRelativeTeleop : OpMode() {
         mt.addData("X", follower.pose.x)
         mt.addData("Y", follower.pose.y)
         mt.addData("Heading (deg)", Math.toDegrees(follower.pose.heading))
+
         mt.addData("Arm State", arm.state)
         mt.addData("Arm Shoulder Target Angle", arm.targetShoulderAngle)
         mt.addData("Arm Shoulder Angle", arm.shoulderAngle)
@@ -152,6 +152,9 @@ class FieldRelativeTeleop : OpMode() {
 
         mt.addData("Intake State", intake.state)
         mt.addData("Intake Element", intake.element)
+        mt.addData("Intake Distance", intake.distance)
+        mt.addData("Intake HSV", intake.hsv.toString())
+
         mt.addData("Rear Light State", rearLight.state)
         mt.update()
     }

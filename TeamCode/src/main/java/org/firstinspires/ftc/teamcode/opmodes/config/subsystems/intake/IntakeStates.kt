@@ -4,5 +4,6 @@ enum class IntakeStates {
     INTAKING,
     OUTTAKING,
     STOPPED,
+    PAUSED,
     HOLDING_ELEMENT
 }

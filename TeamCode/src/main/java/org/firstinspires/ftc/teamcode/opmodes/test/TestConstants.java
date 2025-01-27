@@ -5,4 +5,5 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 public class TestConstants {
     public static double testTargetShoulderAngle = -35.0; // deg
+    public static double servoPause = 0.025;
 }

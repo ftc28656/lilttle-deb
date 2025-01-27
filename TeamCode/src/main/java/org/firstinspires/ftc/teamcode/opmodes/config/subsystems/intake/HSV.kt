@@ -3,7 +3,11 @@ package org.firstinspires.ftc.teamcode.opmodes.config.subsystems.intake
 import android.graphics.Color
 import com.qualcomm.robotcore.hardware.NormalizedRGBA
 
-data class HSV(val hue : Float, val saturation : Float, val value : Float)
+data class HSV(val hue : Float, val saturation : Float, val value : Float){
+    override fun toString(): String {
+        return "HSV(hue=$hue, saturation=$saturation, value=$value)"
+    }
+}
 
 fun NormalizedRGBA.toHSV(): HSV {
     val hsvValues = FloatArray(3)
