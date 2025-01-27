@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import org.firstinspires.ftc.teamcode.opmodes.config.LittleDebbie
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.arm.ArmStates
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.arm.ArmSubsystem
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.intake.IntakeElement
@@ -29,9 +30,9 @@ class FieldRelativeTeleop : OpMode() {
 
     private lateinit var mt: MultipleTelemetry
 
-    private val xSlewRateFilter = SlewRateFilter(0.5)
-    private val ySlewRateFilter = SlewRateFilter(0.5)
-    private val turnSlewRateFilter = SlewRateFilter(0.5)
+    private val xSlewRateFilter = SlewRateFilter({ LittleDebbie.drive.xMaxSlewRate })
+    private val ySlewRateFilter = SlewRateFilter({ LittleDebbie.drive.yMaxSlewRate })
+    private val turnSlewRateFilter = SlewRateFilter({ LittleDebbie.drive.turnMaxSlewRate })
 
     private lateinit var allHubs : List<LynxModule>
     private val loopTimer = Timer()
@@ -86,8 +87,8 @@ class FieldRelativeTeleop : OpMode() {
 
         // update the follower with the gamepad inputs with slew rate limiting
         // (https://docs.wpilib.org/en/stable/docs/software/advanced-controls/filters/slew-rate-limiter.html)
-        val x = xSlewRateFilter.filter(-gamepad1.left_stick_x.toDouble())
-        val y = ySlewRateFilter.filter(-gamepad1.left_stick_y.toDouble())
+        val x = xSlewRateFilter.filter(-gamepad1.left_stick_y.toDouble())
+        val y = ySlewRateFilter.filter(-gamepad1.left_stick_x.toDouble())
         val turn = turnSlewRateFilter.filter(-gamepad1.right_stick_x.toDouble())
         follower.setTeleOpMovementVectors(x,y,turn,false)
         follower.update()
