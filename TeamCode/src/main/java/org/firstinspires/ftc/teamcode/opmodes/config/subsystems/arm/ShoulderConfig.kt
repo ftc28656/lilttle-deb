@@ -9,7 +9,10 @@ class ShoulderConfig(@JvmField var pid : CustomPIDFCoefficients = CustomPIDFCoef
 ) { }
 class ShoulderAngles(@JvmField var min: Double = -35.0,
                      @JvmField var max: Double = 110.0,
-                     @JvmField var start : Double = -35.0,
+                     @JvmField var start : Double = -37.0,
+                     @JvmField var travel : Double = -25.0,
+                     @JvmField var beltInstallation : Double = 0.0,
+                     @JvmField var homingAngleIncrement : Double = 1.0,
 
                      @JvmField var samplePreIntake : Double = -15.0,
                      @JvmField var sampleIntake : Double = -5.0,

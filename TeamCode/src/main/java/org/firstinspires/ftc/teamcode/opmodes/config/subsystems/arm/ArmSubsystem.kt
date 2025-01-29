@@ -79,7 +79,10 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
         shoulderMotor = hardwareMap.get<DcMotorSimple>(DcMotorSimple::class.java, "shoulder")
         shoulderEncoderMotor = hardwareMap.get<DcMotorEx>(DcMotorEx::class.java, FollowerConstants.leftFrontMotorName)
 
+        // ensure that the motor direction is set properly even when the follower is not running (e.g. a test opmode)
+        shoulderEncoderMotor.direction = FollowerConstants.leftFrontMotorDirection
         shoulderMotor.direction = DcMotorSimple.Direction.REVERSE
+
         shoulderMotor.power = 0.0
         resetShoulderEncoder()
         shoulderPID.reset()
@@ -115,6 +118,22 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
         leftElbowServo.position = position
         rightElbowServo.position = position
     }
+    fun moveUp() {
+        // if homing move up
+        if(state == ArmStates.HOMING && !isHome)
+            targetShoulderAngle += LittleDebbie.shoulder.angles.homingAngleIncrement
+    }
+    fun moveDown() {
+        if(state == ArmStates.HOMING && !isHome)
+            targetShoulderAngle -= LittleDebbie.shoulder.angles.homingAngleIncrement
+    }
+    fun resetHome() {
+        // NOTE: this resets home no matter whether you detected isHome or not
+        if(state == ArmStates.HOMING) {
+            resetShoulderEncoder()
+            targetShoulderAngle = LittleDebbie.shoulder.angles.start
+        }
+    }
     private fun servoAngleToPosition(angle: Double) : Double {
         // derived empirically
         val m = -2.61E-03
@@ -123,9 +142,21 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
     }
     private fun updateTargetsForArmState(state: ArmStates) {
         when (state) {
+            ArmStates.HOMING -> {
+                targetElbowAngle = LittleDebbie.elbow.angles.start
+                targetShoulderAngle = shoulderAngle // let the should stay where it is
+            }
             ArmStates.START -> {
                 targetShoulderAngle = LittleDebbie.shoulder.angles.start
                 targetElbowAngle = LittleDebbie.elbow.angles.start
+            }
+            ArmStates.TRAVEL -> {
+                targetShoulderAngle = LittleDebbie.shoulder.angles.travel
+                targetElbowAngle = LittleDebbie.elbow.angles.travel
+            }
+            ArmStates.BELT_INSTALLATION -> {
+                targetShoulderAngle = LittleDebbie.shoulder.angles.beltInstallation
+                targetElbowAngle = LittleDebbie.elbow.angles.beltInstallation
             }
             ArmStates.SAMPLE_PREINTAKE -> {
                 val tolerance = 5.0

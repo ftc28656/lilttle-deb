@@ -4,6 +4,8 @@ class ElbowConfig(@JvmField var angles : ElbowAngles = ElbowAngles()) {
 }
 
 class ElbowAngles(   @JvmField var start : Double = 135.0,
+                     @JvmField var travel : Double = 90.0,
+                     @JvmField var beltInstallation : Double = 90.0,
 
                      @JvmField var samplePreIntake : Double = 0.0,
                      @JvmField var sampleIntake : Double= -20.0,

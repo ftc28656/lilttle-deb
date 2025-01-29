@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.opmodes.config.subsystems.arm
 
 enum class ArmStates {
     START,
+    TRAVEL,
+    HOMING,
+    BELT_INSTALLATION,
 
     SAMPLE_PREINTAKE,               // when driving into submersible
     SAMPLE_INTAKE,                  // when intaking in sub
