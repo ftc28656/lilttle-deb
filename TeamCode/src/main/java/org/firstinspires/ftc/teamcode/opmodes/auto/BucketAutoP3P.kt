@@ -273,11 +273,7 @@ class BucketAutoP3P : OpMode() {
             IntakeElement.YELLOW -> RearLightStates.HOLDING_YELLOW
             IntakeElement.BLUE -> RearLightStates.HOLDING_BLUE
             IntakeElement.UNKNOWN -> RearLightStates.HOLDING_UNKOWN
-            else -> when(intake.state) {
-                IntakeStates.INTAKING -> RearLightStates.INTAKING
-                IntakeStates.OUTTAKING -> RearLightStates.OUTTAKING
-                else -> RearLightStates.EMPTY_AND_OFF
-            }
+            else -> RearLightStates.EMPTY_AND_OFF
         }
     }
     private fun updateTelemetry() {

@@ -1,14 +1,17 @@
 package org.firstinspires.ftc.teamcode.opmodes.config.subsystems.arm
 
-class ElbowConfig(@JvmField var angles : ElbowAngles = ElbowAngles()) {
-}
+class ElbowConfig(@JvmField var angles : ElbowAngles = ElbowAngles(),
+                  @JvmField var angleOffset : Double = -20.0,
+                  @JvmField var Kf : Double = 0.15,
+                  @JvmField var angleSlewRateLimit : Double = 240.0, // degrees/sec
+) {}
 
 class ElbowAngles(   @JvmField var start : Double = 135.0,
                      @JvmField var travel : Double = 90.0,
                      @JvmField var beltInstallation : Double = 90.0,
 
                      @JvmField var samplePreIntake : Double = 0.0,
-                     @JvmField var sampleIntake : Double= -20.0,
+                     @JvmField var sampleIntake : Double= -32.0,
                      @JvmField var samplePrePositionIntake : Double = -15.0,
                      @JvmField var sampleScoreHigh : Double = 120.0,
                      @JvmField var sampleScoreLow : Double = 150.0,

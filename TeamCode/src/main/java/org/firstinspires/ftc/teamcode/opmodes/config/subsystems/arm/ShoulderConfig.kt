@@ -2,10 +2,10 @@ package org.firstinspires.ftc.teamcode.opmodes.config.subsystems.arm
 
 import org.firstinspires.ftc.teamcode.pedroPathing.util.CustomPIDFCoefficients
 
-class ShoulderConfig(@JvmField var pid : CustomPIDFCoefficients = CustomPIDFCoefficients(0.02,0.0,0.0027,0.0),
+class ShoulderConfig(@JvmField var pid : CustomPIDFCoefficients = CustomPIDFCoefficients(0.06,0.0001,0.0025,0.0),
                      @JvmField var angles : ShoulderAngles = ShoulderAngles(),
-                     @JvmField var maxPower : Double = 1.0,
-                     @JvmField var Kf : Double = 0.1,
+                     @JvmField var maxPower : Double = 0.9,
+                     @JvmField var Kf : Double = 0.15,
 ) { }
 class ShoulderAngles(@JvmField var min: Double = -35.0,
                      @JvmField var max: Double = 110.0,
@@ -15,7 +15,7 @@ class ShoulderAngles(@JvmField var min: Double = -35.0,
                      @JvmField var homingAngleIncrement : Double = 1.0,
 
                      @JvmField var samplePreIntake : Double = -15.0,
-                     @JvmField var sampleIntake : Double = -5.0,
+                     @JvmField var sampleIntake : Double = -3.0,
                      @JvmField var samplePrePositionIntake : Double = -15.0,
                      @JvmField var sampleScoreHigh : Double = 105.0,
                      @JvmField var sampleScoreLow : Double = 40.0,

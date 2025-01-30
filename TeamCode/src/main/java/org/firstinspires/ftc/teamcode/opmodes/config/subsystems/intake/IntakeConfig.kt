@@ -5,7 +5,7 @@ class IntakeConfig(@JvmField var speeds: IntakeServoSpeeds = IntakeServoSpeeds()
                    @JvmField var distanceThreshold: Double = 3.0,
                    @JvmField var crTimeout: Double = 3.0,
                    @JvmField var crPause: Double = 0.050,
-                   @JvmField var autoStopDelay: Double = 0.5,
+                   @JvmField var autoStopDelay: Double = 1.0,
     ) { }
 class IntakeServoSpeeds(@JvmField var intake : Double = 1.0,
                         @JvmField var outtake : Double = 0.0,

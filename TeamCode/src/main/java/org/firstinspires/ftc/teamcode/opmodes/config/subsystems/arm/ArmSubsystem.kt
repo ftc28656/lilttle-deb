@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.config.subsystems.arm
 
+import android.util.Log
 import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
@@ -8,11 +9,14 @@ import com.qualcomm.robotcore.hardware.DigitalChannel
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.hardware.ServoImplEx
+import edu.ncssm.ftc.electricmayhem.core.util.epsilonEquals
 import org.firstinspires.ftc.teamcode.opmodes.config.LittleDebbie
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.MathFunctions.clamp
 import org.firstinspires.ftc.teamcode.pedroPathing.tuning.FollowerConstants
-import org.firstinspires.ftc.teamcode.pedroPathing.util.FeedForwardConstant
 import org.firstinspires.ftc.teamcode.pedroPathing.util.PIDFController
+import org.firstinspires.ftc.teamcode.util.SlewRateFilter
+import org.firstinspires.ftc.teamcode.util.motion.MotionProfileGenerator
+import org.firstinspires.ftc.teamcode.util.motion.MotionState
 import kotlin.math.abs
 import kotlin.math.cos
 
@@ -29,9 +33,9 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
     lateinit var shoulderEncoderMotor : DcMotorEx
     private val shoulderPID = PIDFController(LittleDebbie.shoulder.pid)
 
+
     // mag limit switch
     lateinit var magLimit: DigitalChannel
-
     var state: ArmStates = ArmStates.START
         set(value) {
             previousState = field
@@ -42,7 +46,15 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
         private set;
     var targetShoulderAngle = LittleDebbie.shoulder.angles.start
         private set(value) {
-            field = clamp(value, LittleDebbie.shoulder.angles.min, LittleDebbie.shoulder.angles.max)
+            when(state) {
+                ArmStates.HOMING -> {
+                    // we have to remove the min/max as we don't know what they mean anyway
+                    field = value
+                }
+                else -> {
+                    field = clamp(value, LittleDebbie.shoulder.angles.min, LittleDebbie.shoulder.angles.max)
+                }
+            }
         }
     val shoulderAngle: Double
         get() {
@@ -53,7 +65,7 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
             return currentAngle
         }
     var targetElbowAngle = LittleDebbie.elbow.angles.start
-        private set;
+        private set
 
     val elbowAngle: Double
         get() {
@@ -62,8 +74,8 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
             val vlb = -1.30E+02
             val vrm = -1.31E+02
             val vrb = 2.96E+02
-            val leftAngle =  leftElbowPosition.voltage * vlm + vlb
-            val rightAngle = rightElbowPosition.voltage * vrm + vrb
+            val leftAngle =  leftElbowPosition.voltage * vlm + vlb + LittleDebbie.elbow.angleOffset
+            val rightAngle = rightElbowPosition.voltage * vrm + vrb + LittleDebbie.elbow.angleOffset
             return (leftAngle + rightAngle) / 2.0
         }
 
@@ -73,6 +85,18 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
     val isAtTargetState : Boolean
         get() = abs(shoulderAngle - targetShoulderAngle) < targetTolerance
                 && abs(elbowAngle - targetElbowAngle) < targetTolerance
+    var pidPower : Double = 0.0
+        private set
+    var elbowFeedforward : Double = 0.0
+        private set
+    var shoulderFeedforward : Double = 0.0
+        private set
+    val totalFeedforward : Double
+        get() = elbowFeedforward + shoulderFeedforward
+    val totalPower
+        get() = clamp(pidPower + totalFeedforward, -LittleDebbie.shoulder.maxPower, LittleDebbie.shoulder.maxPower)
+    private val servoAngleSlewRateFilter = SlewRateFilter({ LittleDebbie.elbow.angleSlewRateLimit })
+
 
     fun init() {
         // shoulder
@@ -96,6 +120,7 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
 
         rightElbowServo.direction = Servo.Direction.REVERSE
 
+
         // mag limit
         magLimit = hardwareMap.get<DigitalChannel>(DigitalChannel::class.java, "maglimit")
     }
@@ -107,23 +132,40 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
         updateTargetsForArmState(state)
 
         // shoulder PID
-        val feedForward = LittleDebbie.shoulder.Kf * cos(Math.toRadians(shoulderAngle))
+        shoulderFeedforward = LittleDebbie.shoulder.Kf * cos(Math.toRadians(shoulderAngle))
+        elbowFeedforward = LittleDebbie.elbow.Kf * cos(Math.toRadians(elbowAngle))
+
         val error = targetShoulderAngle - shoulderAngle
         shoulderPID.updateError(error)
-        val power = clamp(shoulderPID.runPIDF(), -LittleDebbie.shoulder.maxPower, LittleDebbie.shoulder.maxPower)
-        shoulderMotor.power = power + feedForward
+        pidPower = shoulderPID.runPIDF()
+
+        shoulderMotor.power = totalPower
 
         // elbow servos
-        val position = servoAngleToPosition(targetElbowAngle)
+        val filteredServoAngle = servoAngleSlewRateFilter.filter(targetElbowAngle)
+        val position = servoAngleToPosition(filteredServoAngle)
         leftElbowServo.position = position
         rightElbowServo.position = position
     }
+    fun beginHoming(){
+        Log.d("ARM","beginHoming")
+        state = ArmStates.HOMING
+        targetShoulderAngle = shoulderAngle
+    }
     fun moveUp() {
+        Log.d("ARM","moveUp")
+        Log.d("ARM","state = $state")
+        Log.d("ARM","isHome = $isHome")
+        Log.d("ARM","target pre = $targetShoulderAngle")
+        Log.d("ARM","increment = ${LittleDebbie.shoulder.angles.homingAngleIncrement}")
+
         // if homing move up
         if(state == ArmStates.HOMING && !isHome)
             targetShoulderAngle += LittleDebbie.shoulder.angles.homingAngleIncrement
+        Log.d("ARM","target post = $targetShoulderAngle")
     }
     fun moveDown() {
+        Log.d("ARM","moveDown")
         if(state == ArmStates.HOMING && !isHome)
             targetShoulderAngle -= LittleDebbie.shoulder.angles.homingAngleIncrement
     }
@@ -138,13 +180,12 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
         // derived empirically
         val m = -2.61E-03
         val b = 7.22E-01
-        return m * angle + b
+        return m * (angle - LittleDebbie.elbow.angleOffset) + b
     }
     private fun updateTargetsForArmState(state: ArmStates) {
         when (state) {
             ArmStates.HOMING -> {
                 targetElbowAngle = LittleDebbie.elbow.angles.start
-                targetShoulderAngle = shoulderAngle // let the should stay where it is
             }
             ArmStates.START -> {
                 targetShoulderAngle = LittleDebbie.shoulder.angles.start

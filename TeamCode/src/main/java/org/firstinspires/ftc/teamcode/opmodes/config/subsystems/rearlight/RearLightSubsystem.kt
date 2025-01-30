@@ -62,20 +62,8 @@ class RearLightSubsystem(val hardwareMap: HardwareMap) {
                 else
                     rearLight.position = yellowColorPosition
             }
-            RearLightStates.INTAKING -> {
-                // flash green, then white
-                if(flashState)
-                    rearLight.position = purpleColorPosition
-                else
-                    rearLight.position = whiteColorPosition
-            }
-            RearLightStates.OUTTAKING -> {
-                // flash green, then white
-                if(flashState)
-                    rearLight.position = greenColorPosition
-                else
-                    rearLight.position = whiteColorPosition
-            }
+            RearLightStates.SAMPLE_MODE -> rearLight.position = purpleColorPosition
+            RearLightStates.SPECIMEN_MODE -> rearLight.position = greenColorPosition
             RearLightStates.EMPTY_AND_OFF -> rearLight.position = offColorPosition
         }
     }

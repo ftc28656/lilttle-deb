@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.teleop
 
+import android.util.Log
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.hardware.lynx.LynxModule
@@ -16,7 +17,9 @@ import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.rearlight.RearLi
 import org.firstinspires.ftc.teamcode.pedroPathing.follower.Follower
 import org.firstinspires.ftc.teamcode.pedroPathing.localization.Pose
 import org.firstinspires.ftc.teamcode.pedroPathing.util.Timer
+import org.firstinspires.ftc.teamcode.util.ButtonReader
 import org.firstinspires.ftc.teamcode.util.SlewRateFilter
+import org.firstinspires.ftc.teamcode.util.TriggerReader
 
 enum class ScoringMode {
     SAMPLES,
@@ -64,11 +67,48 @@ class FieldRelativeTeleop : OpMode() {
     private var scoringPosition = ScoringPosition.HIGH
     private var alliance = Alliance.RED
     private var telopState = TeleopState.TRAVEL
-    private val triggerThreshold = 0.5
+
+    private lateinit var dpadUp : ButtonReader
+    private lateinit var dpadDown : ButtonReader
+    private lateinit var dpadLeft : ButtonReader
+    private lateinit var dpadRight : ButtonReader
+
+    private lateinit var crossButton : ButtonReader
+    private lateinit var circleButton : ButtonReader
+    private lateinit var squareButton : ButtonReader
+    private lateinit var triangleButton : ButtonReader
+
+    private lateinit var rightBumper : ButtonReader
+    private lateinit var leftBumper : ButtonReader
+    private lateinit var leftTrigger : TriggerReader
+    private lateinit var rightTrigger1 : TriggerReader
+    private lateinit var rightTrigger2 : TriggerReader
+
+    private lateinit var optionsButton : ButtonReader
+
+    private val outtakeTimer = Timer()
 
     /** This method is call once when init is played, it initializes the follower and subsystems  */
     override fun init() {
         mt = MultipleTelemetry(telemetry, FtcDashboard.getInstance().telemetry)
+
+        dpadUp = ButtonReader({ gamepad1.dpad_up })
+        dpadDown = ButtonReader({ gamepad1.dpad_down })
+        dpadLeft = ButtonReader({ gamepad1.dpad_left })
+        dpadRight = ButtonReader({ gamepad1.dpad_right })
+
+        crossButton = ButtonReader({ gamepad1.cross })
+        circleButton = ButtonReader({ gamepad1.circle })
+        squareButton = ButtonReader({ gamepad1.square })
+        triangleButton = ButtonReader({ gamepad1.triangle })
+
+        rightBumper = ButtonReader({ gamepad1.right_bumper })
+        leftBumper = ButtonReader({ gamepad1.left_bumper })
+        rightTrigger1 = TriggerReader({ gamepad1.right_trigger }, 0.1)
+        rightTrigger2 = TriggerReader({ gamepad1.right_trigger }, 0.9)
+        leftTrigger = TriggerReader({ gamepad1.left_trigger }, 0.5)
+
+        optionsButton = ButtonReader({ gamepad1.options })
 
         allHubs = hardwareMap.getAll(LynxModule::class.java)
         for (hub in allHubs) {
@@ -93,9 +133,9 @@ class FieldRelativeTeleop : OpMode() {
         clearBulkCache()
 
         intake.state = when {
-            gamepad1.right_trigger > triggerThreshold -> IntakeStates.INTAKING
-            gamepad1.left_trigger > triggerThreshold -> IntakeStates.OUTTAKING
-            else -> IntakeStates.STOPPED
+            rightTrigger1.wasJustPressed -> IntakeStates.INTAKING
+            leftTrigger.wasJustPressed -> IntakeStates.OUTTAKING
+            else -> intake.state
         }
 
         updateRearLight()
@@ -123,75 +163,129 @@ class FieldRelativeTeleop : OpMode() {
         follower.update()
 
         // update scoring mode and position based on the dpad and allow non-state-dependent things
+
         when {
-            gamepad1.dpad_up -> scoringPosition = ScoringPosition.HIGH
-            gamepad1.dpad_down -> scoringPosition = ScoringPosition.LOW
-            gamepad1.dpad_left -> scoringMode = ScoringMode.SAMPLES
-            gamepad1.dpad_right -> scoringMode = ScoringMode.SPECIMEN
-            gamepad1.triangle -> {
+            triangleButton.wasJustPressed -> {
                 val alignmentPose = Pose(follower.pose.x, follower.pose.y, Math.toRadians(LittleDebbie.drive.alignmentHeading))
-                follower.setStartingPose(alignmentPose)
+                follower.pose = alignmentPose
             }
+            optionsButton.wasJustPressed-> {
+                arm.beginHoming()
+                telopState = TeleopState.HOMING
+            }
+
         }
 
         // Now update the scoring state based on input
         telopState =  when(telopState) {
             TeleopState.TRAVEL -> when {
-                    gamepad1.right_bumper -> when(scoringMode) {
-                            ScoringMode.SAMPLES -> when (intake.element) {
-                                    IntakeElement.NONE -> TeleopState.SAMPLE_HOVER
-                                    else -> when (scoringPosition) {
-                                            ScoringPosition.HIGH -> TeleopState.SAMPLE_HIGH
-                                            ScoringPosition.LOW -> TeleopState.SAMPLE_LOW
-                                        }
+                dpadUp.wasJustPressed -> {
+                    scoringPosition = ScoringPosition.HIGH
+                    telopState
+                }
+                dpadDown.wasJustPressed -> {
+                    scoringPosition = ScoringPosition.LOW
+                    telopState
+                }
+                dpadLeft.wasJustPressed -> {
+                    scoringMode = ScoringMode.SAMPLES
+                    telopState
+                }
+                dpadRight.wasJustPressed -> {
+                    scoringMode = ScoringMode.SPECIMEN
+                    telopState
+                }
+                leftTrigger.wasJustPressed -> when(scoringMode) {
+                            ScoringMode.SAMPLES ->  when (scoringPosition) {
+                                    ScoringPosition.HIGH -> TeleopState.SAMPLE_HIGH
+                                    ScoringPosition.LOW -> TeleopState.SAMPLE_LOW
                                 }
                             ScoringMode.SPECIMEN -> when(scoringPosition) {
                                    ScoringPosition.HIGH -> TeleopState.SPECIMEN_HIGH
                                    ScoringPosition.LOW -> TeleopState.SPECIMEN_LOW
                                 }
                         }
-                    gamepad1.options -> TeleopState.HOMING
-                    else -> TeleopState.TRAVEL
-                }
+                rightTrigger1.wasJustPressed -> when(scoringMode) {
+                    ScoringMode.SAMPLES -> TeleopState.SAMPLE_HOVER
+                    ScoringMode.SPECIMEN -> TeleopState.TRAVEL
+                    }
+                else -> TeleopState.TRAVEL
+            }
             TeleopState.SAMPLE_HOVER -> when {
-                gamepad1.right_bumper -> TeleopState.TRAVEL
-                gamepad1.right_trigger > triggerThreshold -> TeleopState.SAMPLE_INTAKING
+                rightTrigger1.wasJustReleased -> TeleopState.TRAVEL
+                rightTrigger2.wasJustPressed -> TeleopState.SAMPLE_INTAKING
+                leftTrigger.wasJustPressed -> {
+                    intake.state = IntakeStates.OUTTAKING
+                    TeleopState.SAMPLE_HOVER
+                }
                 else -> TeleopState.SAMPLE_HOVER
             }
             TeleopState.SAMPLE_INTAKING -> when {
-                // TODO: add the ability to trim this somehow
-                gamepad1.right_trigger < triggerThreshold -> TeleopState.SAMPLE_HOVER
+                dpadUp.wasJustPressed -> {
+                    LittleDebbie.shoulder.angles.sampleIntake += 1.0
+                    telopState
+                }
+                dpadDown.wasJustPressed -> {
+                    LittleDebbie.shoulder.angles.sampleIntake -= 1.0
+                    telopState
+                }
+                dpadLeft.wasJustPressed -> {
+                    LittleDebbie.elbow.angles.sampleIntake -= 1.0
+                    telopState
+                }
+                dpadRight.wasJustPressed -> {
+                    LittleDebbie.elbow.angles.sampleIntake += 1.0
+                    telopState
+                }
+                rightTrigger2.wasJustReleased -> TeleopState.SAMPLE_HOVER
                 else -> TeleopState.SAMPLE_INTAKING
             }
             TeleopState.SAMPLE_HIGH -> when {
-                gamepad1.right_trigger > triggerThreshold -> TeleopState.OUTTAKING
-                gamepad1.right_bumper -> TeleopState.TRAVEL
+                leftTrigger.wasJustReleased -> TeleopState.OUTTAKING
+                rightBumper.wasJustPressed -> TeleopState.TRAVEL
+                leftBumper.wasJustPressed -> {
+                    scoringPosition = ScoringPosition.LOW
+                    TeleopState.SAMPLE_LOW
+                }
                 else -> TeleopState.SAMPLE_HIGH
             }
             TeleopState.SAMPLE_LOW -> when {
-                gamepad1.right_trigger > triggerThreshold -> TeleopState.OUTTAKING
-                gamepad1.right_bumper -> TeleopState.TRAVEL
+                leftTrigger.wasJustReleased -> TeleopState.OUTTAKING
+                leftBumper.wasJustPressed -> {
+                    scoringPosition = ScoringPosition.HIGH
+                    TeleopState.SAMPLE_HIGH
+                }
                 else -> TeleopState.SAMPLE_LOW
             }
             TeleopState.SPECIMEN_HIGH -> when {
-                gamepad1.right_trigger > triggerThreshold -> TeleopState.OUTTAKING
-                gamepad1.right_bumper -> TeleopState.TRAVEL
+                leftTrigger.wasJustReleased -> TeleopState.OUTTAKING
+                leftBumper.wasJustPressed -> {
+                    scoringPosition = ScoringPosition.LOW
+                    TeleopState.SPECIMEN_LOW
+                }
                 else -> TeleopState.SPECIMEN_HIGH
             }
             TeleopState.SPECIMEN_LOW -> when {
-                gamepad1.right_trigger > triggerThreshold -> TeleopState.OUTTAKING
-                gamepad1.right_bumper -> TeleopState.TRAVEL
+                leftTrigger.wasJustReleased -> TeleopState.OUTTAKING
+                leftBumper.wasJustPressed -> {
+                    scoringPosition = ScoringPosition.HIGH
+                    TeleopState.SAMPLE_HIGH
+                }
                 else -> TeleopState.SPECIMEN_LOW
             }
             TeleopState.OUTTAKING -> when(scoringMode) {
                 ScoringMode.SAMPLES -> when {
-                    gamepad1.right_trigger < triggerThreshold -> TeleopState.TRAVEL
-                    gamepad1.right_bumper -> TeleopState.TRAVEL
+                    intake.element == IntakeElement.NONE -> TeleopState.TRAVEL
+                    rightBumper.wasJustPressed -> TeleopState.TRAVEL
                     else -> TeleopState.OUTTAKING
                 }
                 ScoringMode.SPECIMEN -> when {
-                    gamepad1.right_trigger < triggerThreshold -> TeleopState.TRAVEL
-                    gamepad1.right_bumper -> TeleopState.TRAVEL
+                    arm.isAtTargetState -> TeleopState.TRAVEL
+                    rightTrigger1.wasJustPressed -> TeleopState.TRAVEL
+                    leftTrigger.wasJustPressed -> when(scoringPosition) {
+                        ScoringPosition.HIGH -> TeleopState.SPECIMEN_HIGH
+                        ScoringPosition.LOW -> TeleopState.SPECIMEN_LOW
+                    }
                     else -> TeleopState.OUTTAKING
                 }
             }
@@ -200,15 +294,15 @@ class FieldRelativeTeleop : OpMode() {
                     arm.resetHome()
                     TeleopState.TRAVEL
                 }
-                gamepad1.dpad_up -> {
+                dpadUp.isPressed -> {
                     arm.moveUp()
                     TeleopState.HOMING
                 }
-                gamepad1.dpad_down -> {
+                dpadDown.isPressed -> {
                     arm.moveDown()
                     TeleopState.HOMING
                 }
-                gamepad1.options -> {
+                crossButton.wasJustPressed -> {
                     arm.resetHome()
                     TeleopState.TRAVEL
                 }
@@ -223,7 +317,6 @@ class FieldRelativeTeleop : OpMode() {
                 intake.state = IntakeStates.STOPPED
             }
             TeleopState.HOMING -> {
-                arm.state = ArmStates.HOMING
                 intake.state = IntakeStates.STOPPED
             }
             TeleopState.SAMPLE_LOW -> {
@@ -243,14 +336,12 @@ class FieldRelativeTeleop : OpMode() {
             TeleopState.SPECIMEN_LOW -> arm.state = ArmStates.SPECIMEN_ABOVE_HIGH_CHAMBER
             TeleopState.SAMPLE_HOVER -> {
                 arm.state = ArmStates.SAMPLE_PREINTAKE
-                intake.state = IntakeStates.STOPPED
             }
             TeleopState.SAMPLE_INTAKING -> {
                 arm.state = ArmStates.SAMPLE_INTAKE
                 intake.state = IntakeStates.INTAKING
             }
         }
-
 
         updateRearLight()
         arm.update()
@@ -269,38 +360,40 @@ class FieldRelativeTeleop : OpMode() {
             IntakeElement.RED -> RearLightStates.HOLDING_RED
             IntakeElement.YELLOW -> RearLightStates.HOLDING_YELLOW
             IntakeElement.BLUE -> RearLightStates.HOLDING_BLUE
-            else -> when(intake.state) {
-                IntakeStates.INTAKING -> RearLightStates.INTAKING
-                IntakeStates.OUTTAKING -> RearLightStates.OUTTAKING
-                else -> RearLightStates.EMPTY_AND_OFF
-            }
+            else -> if(telopState == TeleopState.HOMING)
+                        RearLightStates.INITIALIZING
+                    else when(scoringMode) {
+                        ScoringMode.SAMPLES -> RearLightStates.SAMPLE_MODE
+                        ScoringMode.SPECIMEN -> RearLightStates.SPECIMEN_MODE
+                        else -> RearLightStates.EMPTY_AND_OFF
+                    }
         }
     }
     private fun updateTelemetry() {
         val loopTime = loopTimer.elapsedTime
         loopTimer.resetTimer()
-        mt.addData("loop time (ms)", loopTime)
-        mt.addData("X", follower.pose.x)
-        mt.addData("Y", follower.pose.y)
-        mt.addData("Heading (deg)", Math.toDegrees(follower.pose.heading))
+        mt.addData("0 loop time (ms)", loopTime)
+        mt.addData("1 X", follower.pose.x)
+        mt.addData("2 Y", follower.pose.y)
+        mt.addData("3 Heading (deg)", Math.toDegrees(follower.pose.heading))
 
-        mt.addData("Teleop State", telopState)
-        mt.addData("Scoring Mode", scoringMode)
-        mt.addData("Teleop State", telopState)
-        mt.addData("Alliance", alliance)
+        mt.addData("4 Teleop State", telopState)
+        mt.addData("5 Scoring Mode", scoringMode)
+        mt.addData("6 Scoring Position", scoringPosition)
 
-        mt.addData("Arm State", arm.state)
-        mt.addData("Arm Shoulder Target Angle", arm.targetShoulderAngle)
-        mt.addData("Arm Shoulder Angle", arm.shoulderAngle)
-        mt.addData("Arm Elbow Target", arm.targetElbowAngle)
-        mt.addData("Arm Elbow Angle", arm.elbowAngle)
+        mt.addData("7 Arm State", arm.state)
+        mt.addData("8 Arm Shoulder Target Angle", arm.targetShoulderAngle)
+        mt.addData("9 Arm Shoulder Angle", arm.shoulderAngle)
+        mt.addData("10 Arm Elbow Target", arm.targetElbowAngle)
+        mt.addData("11 Arm Elbow Angle", arm.elbowAngle)
+        mt.addData("12 Arm IsHome", arm.isHome)
 
-        mt.addData("Intake State", intake.state)
-        mt.addData("Intake Element", intake.element)
-        mt.addData("Intake Distance", intake.distance)
-        mt.addData("Intake HSV", intake.hsv.toString())
+        mt.addData("13 Intake State", intake.state)
+        mt.addData("14 Intake Element", intake.element)
+        mt.addData("15 Intake Distance", intake.distance)
+        mt.addData("16 Intake HSV", intake.hsv.toString())
 
-        mt.addData("Rear Light State", rearLight.state)
+        mt.addData("17 Rear Light State", rearLight.state)
         mt.update()
     }
     /** We do not use this because everything automatically should disable  */
