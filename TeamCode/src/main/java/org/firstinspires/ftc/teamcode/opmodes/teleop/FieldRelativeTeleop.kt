@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmodes.teleop
 
-import android.util.Log
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.hardware.lynx.LynxModule
@@ -372,28 +371,28 @@ class FieldRelativeTeleop : OpMode() {
     private fun updateTelemetry() {
         val loopTime = loopTimer.elapsedTime
         loopTimer.resetTimer()
-        mt.addData("0 loop time (ms)", loopTime)
-        mt.addData("1 X", follower.pose.x)
-        mt.addData("2 Y", follower.pose.y)
-        mt.addData("3 Heading (deg)", Math.toDegrees(follower.pose.heading))
+        mt.addData("a loop time (ms)", loopTime)
+        mt.addData("b X", follower.pose.x)
+        mt.addData("c Y", follower.pose.y)
+        mt.addData("d Heading (deg)", Math.toDegrees(follower.pose.heading))
 
-        mt.addData("4 Teleop State", telopState)
-        mt.addData("5 Scoring Mode", scoringMode)
-        mt.addData("6 Scoring Position", scoringPosition)
+        mt.addData("e Teleop State", telopState)
+        mt.addData("f Scoring Mode", scoringMode)
+        mt.addData("g Scoring Position", scoringPosition)
 
-        mt.addData("7 Arm State", arm.state)
-        mt.addData("8 Arm Shoulder Target Angle", arm.targetShoulderAngle)
-        mt.addData("9 Arm Shoulder Angle", arm.shoulderAngle)
-        mt.addData("10 Arm Elbow Target", arm.targetElbowAngle)
-        mt.addData("11 Arm Elbow Angle", arm.elbowAngle)
-        mt.addData("12 Arm IsHome", arm.isHome)
-
-        mt.addData("13 Intake State", intake.state)
-        mt.addData("14 Intake Element", intake.element)
-        mt.addData("15 Intake Distance", intake.distance)
-        mt.addData("16 Intake HSV", intake.hsv.toString())
-
-        mt.addData("17 Rear Light State", rearLight.state)
+        mt.addData("h Arm State", arm.state)
+        mt.addData("i Arm Shoulder Target Angle", arm.targetShoulderAngle)
+        mt.addData("j Arm Shoulder Angle", arm.shoulderAngle)
+        mt.addData("k Arm Elbow Target", arm.targetElbowAngle)
+        mt.addData("l Arm Elbow Angle", arm.elbowAngle)
+//        mt.addData("m Arm IsHome", arm.isHome)
+//
+//        mt.addData("n Intake State", intake.state)
+//        mt.addData("o Intake Element", intake.element)
+//        mt.addData("p Intake Distance", intake.distance)
+//        mt.addData("q Intake HSV", intake.hsv.toString())
+//
+//        mt.addData("r Rear Light State", rearLight.state)
         mt.update()
     }
     /** We do not use this because everything automatically should disable  */

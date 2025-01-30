@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.test
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.PwmControl
@@ -7,6 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.hardware.ServoController
 import java.lang.Thread.sleep
 
+@Disabled
 @TeleOp(name = "Rear Light Tester", group = "Test")
 class RearLightTester : OpMode() {
     lateinit var rearLight: Servo

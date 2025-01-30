@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.opmodes.test
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DigitalChannel
 import com.qualcomm.robotcore.hardware.ServoImplEx
 
+@Disabled
 @TeleOp(name = "Mag Limit Tester", group = "Test")
 class MagLimitTester : OpMode() {
     lateinit var magLimit: DigitalChannel

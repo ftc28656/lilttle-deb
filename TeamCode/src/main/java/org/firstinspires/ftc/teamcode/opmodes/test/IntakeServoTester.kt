@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes.test
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.intake.IntakeStates
@@ -9,6 +10,7 @@ import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.intake.IntakeSub
 import org.firstinspires.ftc.teamcode.pedroPathing.util.Timer
 
 
+@Disabled
 @TeleOp(name = "Intake Servo Tester", group = "Test")
 class IntakeServoTester : OpMode() {
     lateinit var intake: IntakeSubsysten

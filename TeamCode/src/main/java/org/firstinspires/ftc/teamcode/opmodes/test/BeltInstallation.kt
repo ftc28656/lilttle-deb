@@ -2,12 +2,13 @@ package org.firstinspires.ftc.teamcode.opmodes.test
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.arm.ArmStates
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.arm.ArmSubsystem
 
-
+@Disabled
 @TeleOp(name = "Belt Installation", group = "Test")
 class BeltInstallation : OpMode() {
     lateinit var arm : ArmSubsystem
