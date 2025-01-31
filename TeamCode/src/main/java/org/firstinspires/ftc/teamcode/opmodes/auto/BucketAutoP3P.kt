@@ -69,6 +69,9 @@ class BucketAutoP3P : OpMode() {
     private lateinit var scoreSample2: PathChain
     private lateinit var scoreSample3: PathChain
 
+    private val pathSegmentElapsedTime
+        get() = pathSegmentTimer.elapsedTimeSeconds
+
     /** Build the paths for the auto (adds, for example, constant/linear headings while doing paths)
      * It is necessary to do this so that all the paths are built before the auto starts.  */
     private fun buildPaths() {
@@ -157,7 +160,7 @@ class BucketAutoP3P : OpMode() {
                 }
            }
             BucketPathStates.SCORING_PRELOAD -> {
-                if (!follower.isBusy && arm.isAtTargetState) {
+                if (!follower.isBusy && armOk()) {
                     intake.state = IntakeStates.OUTTAKING
                     if(intake.element == IntakeElement.NONE)
                         stateTransition(BucketPathStates.LINEUP_SAMPLE_1) {
@@ -167,10 +170,10 @@ class BucketAutoP3P : OpMode() {
                 }
             }
             BucketPathStates.LINEUP_SAMPLE_1 -> {
-                if (!follower.isBusy && arm.isAtTargetState) {
+                if (!follower.isBusy && armOk()) {
                     intake.state = IntakeStates.INTAKING
                     arm.state = ArmStates.SAMPLE_INTAKE
-                    if(arm.isAtTargetState)
+                    if(armOk())
                         stateTransition(BucketPathStates.PICKUP_SAMPLE_1) {
                             follower.followPath(pickupSample1, true)
                         }
@@ -183,7 +186,7 @@ class BucketAutoP3P : OpMode() {
                         follower.followPath(scoreSample1, true)
                     }
             BucketPathStates.SCORING_SAMPLE_1 ->
-                if(!follower.isBusy && arm.isAtTargetState) {
+                if(!follower.isBusy && armOk()) {
                     intake.state = IntakeStates.OUTTAKING
                     if(intake.element == IntakeElement.NONE)
                         stateTransition(BucketPathStates.LINEUP_SAMPLE_2) {
@@ -192,10 +195,10 @@ class BucketAutoP3P : OpMode() {
                         }
                 }
             BucketPathStates.LINEUP_SAMPLE_2 -> {
-                if (!follower.isBusy && arm.isAtTargetState)
+                if (!follower.isBusy && armOk())
                     intake.state = IntakeStates.INTAKING
                     arm.state = ArmStates.SAMPLE_INTAKE
-                    if(arm.isAtTargetState)
+                    if(armOk())
                         stateTransition(BucketPathStates.PICKUP_SAMPLE_2) {
                             follower.followPath(pickupSample2, true)
                         }
@@ -207,7 +210,7 @@ class BucketAutoP3P : OpMode() {
                         follower.followPath(scoreSample2, true)
                     }
             BucketPathStates.SCORING_SAMPLE_2 ->
-                if(!follower.isBusy && arm.isAtTargetState) {
+                if(!follower.isBusy && armOk()) {
                     intake.state = IntakeStates.OUTTAKING
                     if(intake.element == IntakeElement.NONE)
                         stateTransition(BucketPathStates.LINEUP_SAMPLE_3) {
@@ -216,10 +219,10 @@ class BucketAutoP3P : OpMode() {
                         }
                 }
             BucketPathStates.LINEUP_SAMPLE_3 -> {
-                if (!follower.isBusy && arm.isAtTargetState)
+                if (!follower.isBusy && armOk())
                     intake.state = IntakeStates.INTAKING
                     arm.state = ArmStates.SAMPLE_INTAKE
-                    if(arm.isAtTargetState)
+                    if(armOk())
                         stateTransition(BucketPathStates.PICKUP_SAMPLE_3) {
                             follower.followPath(pickupSample3, true)
                         }
@@ -231,7 +234,7 @@ class BucketAutoP3P : OpMode() {
                         follower.followPath(scoreSample3, true)
                     }
             BucketPathStates.SCORING_SAMPLE_3 ->
-                if(!follower.isBusy && arm.isAtTargetState) {
+                if(!follower.isBusy && armOk()) {
                     intake.state = IntakeStates.OUTTAKING
                     if(intake.element == IntakeElement.NONE)
                         stateTransition(BucketPathStates.PARKING) {
@@ -239,25 +242,16 @@ class BucketAutoP3P : OpMode() {
                             follower.followPath(park, true)
                         }
                 }
-
-
-            else -> { }
-//            BucketPathStates.PARKING ->
-//                if(isFollowerCloseToTargetPose(parkPose))
-//                    stateTransition(BucketPathStates.PARKING) {
-//                    }
+            BucketPathStates.PARKING -> {
+                if(!follower.isBusy)
+                    arm.state = ArmStates.PARK_TOUCH_BAR
+            }
         }
     }
 
-    /** This function checks if the robot is close to the target pose, Default tolerance is 1.0 in x and y, and 5 degrees in heading
-     * */
-    private fun isFollowerCloseToTargetPose(
-        target: Pose,
-        poseTolerance: Pose = Pose(LittleDebbie.auto.positionTolerance, LittleDebbie.auto.positionTolerance, Math.toRadians(LittleDebbie.auto.headingTolerance))
-    ): Boolean {
-        return Math.abs(follower.pose.x - target.x) < poseTolerance.x
-                && Math.abs(follower.pose.y - target.y) < poseTolerance.y
-                && AngleUnit.normalizeRadians(Math.abs(follower.pose.heading - target.heading)) < poseTolerance.heading
+    private fun armOk() : Boolean {
+        return arm.secondsAtTarget > LittleDebbie.auto.armSettleTime ||
+                pathSegmentElapsedTime > LittleDebbie.auto.armTargetTimeOut
     }
 
     /** This function is used to transition between states in the state machine
@@ -353,6 +347,8 @@ class BucketAutoP3P : OpMode() {
         mt.addData("d Y", follower.pose.y)
         mt.addData("e Heading (deg)", Math.toDegrees(follower.pose.heading))
         mt.addData("e1 follower.isBusy ", follower.isBusy)
+        mt.addData("e2 armOk() ", armOk())
+        mt.addData("e3 seg time ", pathSegmentElapsedTime)
 
         mt.addData("f Arm State", arm.state)
         mt.addData("g Arm Shoulder Target Angle", arm.targetShoulderAngle)

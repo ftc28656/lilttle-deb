@@ -1,9 +1,12 @@
 package org.firstinspires.ftc.teamcode.opmodes.config.subsystems.arm
 
+import org.firstinspires.ftc.teamcode.opmodes.teleop.SlewRateLimits
+
 class ElbowConfig(@JvmField var angles : ElbowAngles = ElbowAngles(),
                   @JvmField var angleOffset : Double = -20.0,
                   @JvmField var Kf : Double = 0.15,
-                  @JvmField var angleSlewRateLimit : Double = 240.0, // degrees/sec
+                  @JvmField var angleSlewLimit: SlewRateLimits = SlewRateLimits(240.0, 240.0),
+                  @JvmField var targetTolerance : Double = 3.0, // degrees
 ) {}
 
 class ElbowAngles(   @JvmField var start : Double = 135.0,
@@ -24,5 +27,5 @@ class ElbowAngles(   @JvmField var start : Double = 135.0,
                      @JvmField var specimenScoreLow : Double = 90.0,
 
                      @JvmField var parkObservation : Double = 90.0,
-                     @JvmField var parkTouchBar : Double = 90.0
+                     @JvmField var parkTouchBar : Double = 75.0
 ) {}

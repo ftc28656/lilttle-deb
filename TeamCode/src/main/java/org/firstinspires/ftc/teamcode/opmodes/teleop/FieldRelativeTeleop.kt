@@ -55,9 +55,9 @@ class FieldRelativeTeleop : OpMode() {
 
     private lateinit var mt: MultipleTelemetry
 
-    private val xSlewRateFilter = SlewRateFilter({ LittleDebbie.drive.xMaxSlewRate })
-    private val ySlewRateFilter = SlewRateFilter({ LittleDebbie.drive.yMaxSlewRate })
-    private val turnSlewRateFilter = SlewRateFilter({ LittleDebbie.drive.turnMaxSlewRate })
+    private val xSlewRateFilter = SlewRateFilter(LittleDebbie.drive.translationSlew)
+    private val ySlewRateFilter = SlewRateFilter(LittleDebbie.drive.translationSlew)
+    private val turnSlewRateFilter = SlewRateFilter(LittleDebbie.drive.rotationalSlew)
 
     private lateinit var allHubs : List<LynxModule>
     private val loopTimer = Timer()

@@ -6,6 +6,7 @@ class ShoulderConfig(@JvmField var pid : CustomPIDFCoefficients = CustomPIDFCoef
                      @JvmField var angles : ShoulderAngles = ShoulderAngles(),
                      @JvmField var maxPower : Double = 0.9,
                      @JvmField var Kf : Double = 0.15,
+                     @JvmField var targetTolerance : Double = 3.0, // degrees
 ) { }
 class ShoulderAngles(@JvmField var min: Double = -35.0,
                      @JvmField var max: Double = 110.0,
@@ -28,6 +29,6 @@ class ShoulderAngles(@JvmField var min: Double = -35.0,
                      @JvmField var specimenScoreLow : Double = -20.0,
 
                      @JvmField var parkObservation : Double = 20.0,
-                     @JvmField var parkTouchBar : Double = 20.0
+                     @JvmField var parkTouchBar : Double = -20.0
 
 ) { }

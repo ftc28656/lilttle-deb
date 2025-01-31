@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.opmodes.config.LittleDebbie
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.MathFunctions.clamp
 import org.firstinspires.ftc.teamcode.pedroPathing.tuning.FollowerConstants
 import org.firstinspires.ftc.teamcode.pedroPathing.util.PIDFController
+import org.firstinspires.ftc.teamcode.pedroPathing.util.Timer
 import org.firstinspires.ftc.teamcode.util.SlewRateFilter
 import org.firstinspires.ftc.teamcode.util.motion.MotionProfileGenerator
 import org.firstinspires.ftc.teamcode.util.motion.MotionState
@@ -33,7 +34,6 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
     lateinit var shoulderEncoderMotor : DcMotorEx
     private val shoulderPID = PIDFController(LittleDebbie.shoulder.pid)
 
-
     // mag limit switch
     lateinit var magLimit: DigitalChannel
     var state: ArmStates = ArmStates.START
@@ -46,6 +46,9 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
         private set;
     var targetShoulderAngle = LittleDebbie.shoulder.angles.start
         private set(value) {
+            if(!field.epsilonEquals(value))
+               atTargetTimer.resetTimer()
+
             when(state) {
                 ArmStates.HOMING -> {
                     // we have to remove the min/max as we don't know what they mean anyway
@@ -65,7 +68,11 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
             return currentAngle
         }
     var targetElbowAngle = LittleDebbie.elbow.angles.start
-        private set
+        private set(value) {
+            if(!field.epsilonEquals(value))
+                atTargetTimer.resetTimer()
+            field = value
+        }
 
     val elbowAngle: Double
         get() {
@@ -81,10 +88,9 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
 
     val isHome : Boolean
         get() = !magLimit.state
-    var targetTolerance = 5.0 // degrees
     val isAtTargetState : Boolean
-        get() = abs(shoulderAngle - targetShoulderAngle) < targetTolerance
-                && abs(elbowAngle - targetElbowAngle) < targetTolerance
+        get() = abs(shoulderAngle - targetShoulderAngle) < LittleDebbie.shoulder.targetTolerance
+                && abs(elbowAngle - targetElbowAngle) < LittleDebbie.elbow.targetTolerance
     var pidPower : Double = 0.0
         private set
     var elbowFeedforward : Double = 0.0
@@ -95,8 +101,10 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
         get() = elbowFeedforward + shoulderFeedforward
     val totalPower
         get() = clamp(pidPower + totalFeedforward, -LittleDebbie.shoulder.maxPower, LittleDebbie.shoulder.maxPower)
-    private val servoAngleSlewRateFilter = SlewRateFilter({ LittleDebbie.elbow.angleSlewRateLimit })
-
+    private val servoAngleSlewRateFilter = SlewRateFilter(LittleDebbie.elbow.angleSlewLimit)
+    private val atTargetTimer = Timer()
+    val secondsAtTarget
+        get() = atTargetTimer.elapsedTimeSeconds
 
     fun init() {
         // shoulder
@@ -130,6 +138,8 @@ class ArmSubsystem(val hardwareMap: HardwareMap)  {
     }
     fun update() {
         updateTargetsForArmState(state)
+
+        if(!isAtTargetState) atTargetTimer.resetTimer()
 
         // shoulder PID
         shoulderFeedforward = LittleDebbie.shoulder.Kf * cos(Math.toRadians(shoulderAngle))
