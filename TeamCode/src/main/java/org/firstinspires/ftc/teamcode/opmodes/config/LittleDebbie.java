@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmodes.config;
 
 import com.acmerobotics.dashboard.config.Config;
 
+import org.firstinspires.ftc.teamcode.opmodes.auto.AutoConfig;
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.arm.ElbowAngles;
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.arm.ElbowConfig;
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.intake.IntakeColorLimits;
@@ -38,5 +39,7 @@ public class LittleDebbie {
      * Elbow Config
      */
     public static ElbowConfig elbow = new ElbowConfig();
+
+    public  static AutoConfig auto = new AutoConfig();
 
 }

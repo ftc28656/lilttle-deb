@@ -4,8 +4,19 @@ import android.graphics.Color
 import com.qualcomm.robotcore.hardware.NormalizedRGBA
 
 data class HSV(val hue : Float, val saturation : Float, val value : Float){
+    var isUnknown = false
+        private set
+    private constructor() : this(0.0F, 0.0F, 0.0F) {
+        isUnknown =true
+    }
+    companion object {
+        val unkown = HSV()
+    }
     override fun toString(): String {
-        return "HSV(hue=$hue, saturation=$saturation, value=$value)"
+        if(isUnknown)
+            return "HSV(unkown)"
+        else
+            return "HSV(hue=$hue, saturation=$saturation, value=$value)"
     }
 }
 

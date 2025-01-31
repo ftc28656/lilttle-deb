@@ -6,6 +6,7 @@ import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
+import org.firstinspires.ftc.teamcode.opmodes.config.LittleDebbie
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.arm.ArmStates
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.arm.ArmSubsystem
 import org.firstinspires.ftc.teamcode.opmodes.config.subsystems.intake.IntakeElement
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.follower.Follower
 import org.firstinspires.ftc.teamcode.pedroPathing.localization.Pose
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.BezierCurve
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.BezierLine
+import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.MathFunctions.clamp
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.PathChain
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.Point
 import org.firstinspires.ftc.teamcode.pedroPathing.util.Timer
@@ -27,7 +29,7 @@ class BucketAutoP3P : OpMode() {
 
     private lateinit var follower: Follower
 
-    private var pathTimer = Timer()
+    private var pathSegmentTimer = Timer()
     private var opmodeTimer = Timer()
     private var pathState = BucketPathStates.START
     private val loopTimer = Timer()
@@ -36,20 +38,32 @@ class BucketAutoP3P : OpMode() {
     lateinit var arm: ArmSubsystem
     private lateinit var rearLight : RearLightSubsystem
     private lateinit var intake : IntakeSubsysten
+    private val nominalVoltage = 12.0
+    private var batteryVoltage : Double = nominalVoltage
 
-    private val startPose = Pose(7.5, 112.5, Math.toRadians(270.0))
-    private val scorePose = Pose(16.0, 124.0, Math.toRadians(315.0))
-    private val pickupSample1Pose = Pose(23.0, 120.0, Math.toRadians(0.0))
-    private val pickupSample2Pose = Pose(23.0, 124.0, Math.toRadians(20.0))
-    private val pickupSample3Pose = Pose(23.0, 124.0, Math.toRadians(36.0))
-    private val parkPose = Pose(60.0, 96.0, Math.toRadians(270.0))
-    private val parkControl1 = Point(60.0, 124.0)
-    private val parkControl2 = Point(60.0, 124.0)
+    private val startPose = LittleDebbie.auto.bucket.startPose.toPose()
+    private val scorePose = LittleDebbie.auto.bucket.scoringPose.toPose()
+
+    private val lineUpSample1Pose = LittleDebbie.auto.bucket.lineUpSample1Pose.toPose()
+    private val pickupSample1Pose = LittleDebbie.auto.bucket.pickupSample1Pose.toPose()
+
+    private val lineupSample2Pose = LittleDebbie.auto.bucket.lineupSample2Pose.toPose()
+    private val pickupSample2Pose = LittleDebbie.auto.bucket.pickupSample2Pose.toPose()
+
+    private val lineupSample3Pose = LittleDebbie.auto.bucket.lineupSample3Pose.toPose()
+    private val pickupSample3Pose = LittleDebbie.auto.bucket.pickupSample3Pose.toPose()
+
+    private val parkPose = LittleDebbie.auto.bucket.parkPose.toPose()
+    private val parkControl1 = LittleDebbie.auto.bucket.parkControl1.toPoint()
+    private val parkControl2 = LittleDebbie.auto.bucket.parkControl2.toPoint()
 
     private lateinit var scorePreload: PathChain
     private lateinit var park: PathChain
+    private lateinit var lineupSample1: PathChain
     private lateinit var pickupSample1: PathChain
+    private lateinit var lineupSample2: PathChain
     private lateinit var pickupSample2: PathChain
+    private lateinit var lineupSample3: PathChain
     private lateinit var pickupSample3: PathChain
     private lateinit var scoreSample1: PathChain
     private lateinit var scoreSample2: PathChain
@@ -79,22 +93,29 @@ class BucketAutoP3P : OpMode() {
             .setLinearHeadingInterpolation(startPose.heading, scorePose.heading)
             .build()
 
-        /* This is our pickupSample1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        pickupSample1 = follower.pathBuilder()
-            .addPath(BezierLine(Point(scorePose), Point(pickupSample1Pose)))
-            .setLinearHeadingInterpolation(scorePose.heading, pickupSample1Pose.heading)
+        lineupSample1 = follower.pathBuilder()
+            .addPath(BezierLine(Point(scorePose), Point(lineUpSample1Pose)))
+            .setLinearHeadingInterpolation(scorePose.heading, lineUpSample1Pose.heading)
             .build()
 
-        /* This is our scoreSample1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
+        pickupSample1 = follower.pathBuilder()
+            .addPath(BezierLine(Point(lineUpSample1Pose), Point(pickupSample1Pose)))
+            .setLinearHeadingInterpolation(lineUpSample1Pose.heading, pickupSample1Pose.heading)
+            .build()
+
         scoreSample1 = follower.pathBuilder()
             .addPath(BezierLine(Point(pickupSample1Pose), Point(scorePose)))
             .setLinearHeadingInterpolation(pickupSample1Pose.heading, scorePose.heading)
             .build()
 
-        /* This is our pickupSample2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
+        lineupSample2 = follower.pathBuilder()
+            .addPath(BezierLine(Point(scorePose), Point(lineupSample2Pose)))
+            .setLinearHeadingInterpolation(scorePose.heading, lineupSample2Pose.heading)
+            .build()
+
         pickupSample2 = follower.pathBuilder()
-            .addPath(BezierLine(Point(scorePose), Point(pickupSample2Pose)))
-            .setLinearHeadingInterpolation(scorePose.heading, pickupSample2Pose.heading)
+            .addPath(BezierLine(Point(lineupSample2Pose), Point(pickupSample2Pose)))
+            .setLinearHeadingInterpolation(lineupSample2Pose.heading, pickupSample2Pose.heading)
             .build()
 
         /* This is our scoreSample2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
@@ -103,13 +124,16 @@ class BucketAutoP3P : OpMode() {
             .setLinearHeadingInterpolation(pickupSample2Pose.heading, scorePose.heading)
             .build()
 
-        /* This is our pickupSample3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        pickupSample3 = follower.pathBuilder()
-            .addPath(BezierLine(Point(scorePose), Point(pickupSample3Pose)))
-            .setLinearHeadingInterpolation(scorePose.heading, pickupSample3Pose.heading)
+        lineupSample3 = follower.pathBuilder()
+            .addPath(BezierLine(Point(scorePose), Point(lineupSample3Pose)))
+            .setLinearHeadingInterpolation(scorePose.heading, lineupSample3Pose.heading)
             .build()
 
-        /* This is our scoreSample3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
+        pickupSample3 = follower.pathBuilder()
+            .addPath(BezierLine(Point(lineupSample3Pose), Point(pickupSample3Pose)))
+            .setLinearHeadingInterpolation(lineupSample3Pose.heading, pickupSample3Pose.heading)
+            .build()
+
         scoreSample3 = follower.pathBuilder()
             .addPath(BezierLine(Point(pickupSample3Pose), Point(scorePose)))
             .setLinearHeadingInterpolation(pickupSample3Pose.heading, scorePose.heading)
@@ -126,66 +150,102 @@ class BucketAutoP3P : OpMode() {
      * */
     private fun autonomousPathUpdate() {
         when (pathState) {
-            BucketPathStates.START ->
-                stateTransition(BucketPathStates.SCORING_PRELOAD) {
-                    arm.state = ArmStates.SAMPLE_SCORE_BUCKET_HIGH
-                    follower.followPath(scorePreload, true)
+            BucketPathStates.START -> {
+            stateTransition(BucketPathStates.SCORING_PRELOAD) {
+                arm.state = ArmStates.SAMPLE_SCORE_BUCKET_HIGH
+                follower.followPath(scorePreload, true)
                 }
-
-            BucketPathStates.SCORING_PRELOAD ->
-                if (isFollowerCloseToTargetPose(scorePose))
-                    stateTransition(BucketPathStates.PICKUP_SAMPLE_1) {
-//                        arm.targetPosition = ArmPositions.SCORE_BUCKET_HIGH
-                        follower.followPath(pickupSample1, true)
-                    }
-
+           }
+            BucketPathStates.SCORING_PRELOAD -> {
+                if (!follower.isBusy && arm.isAtTargetState) {
+                    intake.state = IntakeStates.OUTTAKING
+                    if(intake.element == IntakeElement.NONE)
+                        stateTransition(BucketPathStates.LINEUP_SAMPLE_1) {
+                            arm.state = ArmStates.SAMPLE_PREINTAKE
+                            follower.followPath(lineupSample1, true)
+                        }
+                }
+            }
+            BucketPathStates.LINEUP_SAMPLE_1 -> {
+                if (!follower.isBusy && arm.isAtTargetState) {
+                    intake.state = IntakeStates.INTAKING
+                    arm.state = ArmStates.SAMPLE_INTAKE
+                    if(arm.isAtTargetState)
+                        stateTransition(BucketPathStates.PICKUP_SAMPLE_1) {
+                            follower.followPath(pickupSample1, true)
+                        }
+                }
+            }
             BucketPathStates.PICKUP_SAMPLE_1 ->
-                if (isFollowerCloseToTargetPose(pickupSample1Pose))
+                if (!follower.isBusy || intake.element != IntakeElement.NONE)
                     stateTransition(BucketPathStates.SCORING_SAMPLE_1) {
-//                        arm.targetPosition =ArmPositions.SAMPLE_INTAKE
+                        arm.state = ArmStates.SAMPLE_SCORE_BUCKET_HIGH
                         follower.followPath(scoreSample1, true)
                     }
-
             BucketPathStates.SCORING_SAMPLE_1 ->
-                if(isFollowerCloseToTargetPose(scorePose))
-                    stateTransition(BucketPathStates.PICKUP_SAMPLE_2) {
-//                    arm.targetPosition = ArmPositions.SCORE_BUCKET_HIGH
-                    follower.followPath(pickupSample2, true)
+                if(!follower.isBusy && arm.isAtTargetState) {
+                    intake.state = IntakeStates.OUTTAKING
+                    if(intake.element == IntakeElement.NONE)
+                        stateTransition(BucketPathStates.LINEUP_SAMPLE_2) {
+                            arm.state = ArmStates.SAMPLE_PREINTAKE
+                            follower.followPath(lineupSample2, true)
+                        }
                 }
-
+            BucketPathStates.LINEUP_SAMPLE_2 -> {
+                if (!follower.isBusy && arm.isAtTargetState)
+                    intake.state = IntakeStates.INTAKING
+                    arm.state = ArmStates.SAMPLE_INTAKE
+                    if(arm.isAtTargetState)
+                        stateTransition(BucketPathStates.PICKUP_SAMPLE_2) {
+                            follower.followPath(pickupSample2, true)
+                        }
+            }
             BucketPathStates.PICKUP_SAMPLE_2 ->
-                if(isFollowerCloseToTargetPose(pickupSample2Pose))
+                if(!follower.isBusy || intake.element != IntakeElement.NONE)
                     stateTransition(BucketPathStates.SCORING_SAMPLE_2) {
-//                        arm.targetPosition = ArmPositions.SAMPLE_INTAKE
+                        arm.state = ArmStates.SAMPLE_SCORE_BUCKET_HIGH
                         follower.followPath(scoreSample2, true)
                     }
-
             BucketPathStates.SCORING_SAMPLE_2 ->
-                if(isFollowerCloseToTargetPose(scorePose))
-                    stateTransition(BucketPathStates.PICKUP_SAMPLE_3) {
-//                        arm.targetPosition = ArmPositions.SCORE_BUCKET_HIGH
-                        follower.followPath(pickupSample3, true)
-                    }
-
+                if(!follower.isBusy && arm.isAtTargetState) {
+                    intake.state = IntakeStates.OUTTAKING
+                    if(intake.element == IntakeElement.NONE)
+                        stateTransition(BucketPathStates.LINEUP_SAMPLE_3) {
+                            arm.state = ArmStates.SAMPLE_PREINTAKE
+                            follower.followPath(lineupSample3, true)
+                        }
+                }
+            BucketPathStates.LINEUP_SAMPLE_3 -> {
+                if (!follower.isBusy && arm.isAtTargetState)
+                    intake.state = IntakeStates.INTAKING
+                    arm.state = ArmStates.SAMPLE_INTAKE
+                    if(arm.isAtTargetState)
+                        stateTransition(BucketPathStates.PICKUP_SAMPLE_3) {
+                            follower.followPath(pickupSample3, true)
+                        }
+            }
             BucketPathStates.PICKUP_SAMPLE_3 ->
-                if(isFollowerCloseToTargetPose(pickupSample3Pose))
+                if(!follower.isBusy || intake.element != IntakeElement.NONE)
                     stateTransition(BucketPathStates.SCORING_SAMPLE_3) {
-//                        arm.targetPosition = ArmPositions.SAMPLE_INTAKE
+                        arm.state = ArmStates.SAMPLE_SCORE_BUCKET_HIGH
                         follower.followPath(scoreSample3, true)
                     }
-
             BucketPathStates.SCORING_SAMPLE_3 ->
-                if(isFollowerCloseToTargetPose(scorePose))
-                    stateTransition(BucketPathStates.PARKING) {
-//                        arm.targetPosition = ArmPositions.SCORE_BUCKET_HIGH
-                        follower.followPath(park, true)
-                    }
+                if(!follower.isBusy && arm.isAtTargetState) {
+                    intake.state = IntakeStates.OUTTAKING
+                    if(intake.element == IntakeElement.NONE)
+                        stateTransition(BucketPathStates.PARKING) {
+                            arm.state = ArmStates.TRAVEL
+                            follower.followPath(park, true)
+                        }
+                }
 
-            BucketPathStates.PARKING ->
-                if(isFollowerCloseToTargetPose(parkPose))
-                    stateTransition(BucketPathStates.PARKING) {
-//                        arm.targetPosition = ArmPositions.PARK
-                    }
+
+            else -> { }
+//            BucketPathStates.PARKING ->
+//                if(isFollowerCloseToTargetPose(parkPose))
+//                    stateTransition(BucketPathStates.PARKING) {
+//                    }
         }
     }
 
@@ -193,7 +253,7 @@ class BucketAutoP3P : OpMode() {
      * */
     private fun isFollowerCloseToTargetPose(
         target: Pose,
-        poseTolerance: Pose = Pose(1.0, 1.0, Math.toRadians(5.0))
+        poseTolerance: Pose = Pose(LittleDebbie.auto.positionTolerance, LittleDebbie.auto.positionTolerance, Math.toRadians(LittleDebbie.auto.headingTolerance))
     ): Boolean {
         return Math.abs(follower.pose.x - target.x) < poseTolerance.x
                 && Math.abs(follower.pose.y - target.y) < poseTolerance.y
@@ -201,14 +261,14 @@ class BucketAutoP3P : OpMode() {
     }
 
     /** This function is used to transition between states in the state machine
-     * It will also reset the pathTimer for each state   */
+     * It will also reset the pathSegmentTimer for each state   */
     private fun stateTransition(
         nextState: BucketPathStates,
         action: () -> Unit
     ) {
         action()
         pathState = nextState
-        pathTimer.resetTimer()
+        pathSegmentTimer.resetTimer()
     }
 
 
@@ -239,6 +299,13 @@ class BucketAutoP3P : OpMode() {
     override fun init_loop() {
         clearBulkCache()
         updateRearLight()
+
+        // scale the follower maxPower based on the batteryvoltage
+        val alpha = 0.8  // for a low pass filter on battvoltage
+        val newBatteryVoltage = hardwareMap.voltageSensor.first().voltage
+        batteryVoltage = alpha * newBatteryVoltage + (1-alpha)* batteryVoltage
+        val maxPowerAdjusted =  clamp(nominalVoltage / batteryVoltage,0.0, 1.0)
+        follower.setMaxPower(maxPowerAdjusted * LittleDebbie.auto.maxPowerFraction)
 
         follower.update()
         arm.update()
@@ -279,25 +346,20 @@ class BucketAutoP3P : OpMode() {
     private fun updateTelemetry() {
         val loopTime = loopTimer.elapsedTime
         loopTimer.resetTimer()
-        mt.addData("loop time (ms)", loopTime)
+        mt.addData("a loop time (ms)", loopTime)
 
-        mt.addData("path state", pathState.toString())
-        mt.addData("X", follower.pose.x)
-        mt.addData("Y", follower.pose.y)
-        mt.addData("Heading (deg)", Math.toDegrees(follower.pose.heading))
+        mt.addData("b path state", pathState.toString())
+        mt.addData("c X", follower.pose.x)
+        mt.addData("d Y", follower.pose.y)
+        mt.addData("e Heading (deg)", Math.toDegrees(follower.pose.heading))
+        mt.addData("e1 follower.isBusy ", follower.isBusy)
 
-        mt.addData("Arm State", arm.state)
-        mt.addData("Arm Shoulder Target Angle", arm.targetShoulderAngle)
-        mt.addData("Arm Shoulder Angle", arm.shoulderAngle)
-        mt.addData("Arm Elbow Target", arm.targetElbowAngle)
-        mt.addData("Arm Elbow Angle", arm.elbowAngle)
+        mt.addData("f Arm State", arm.state)
+        mt.addData("g Arm Shoulder Target Angle", arm.targetShoulderAngle)
+        mt.addData("h Arm Shoulder Angle", arm.shoulderAngle)
+        mt.addData("i Arm Elbow Target", arm.targetElbowAngle)
+        mt.addData("j Arm Elbow Angle", arm.elbowAngle)
 
-        mt.addData("Intake State", intake.state)
-        mt.addData("Intake Element", intake.element)
-        mt.addData("Intake Distance", intake.distance)
-        mt.addData("Intake HSV", intake.hsv.toString())
-
-        mt.addData("Rear Light State", rearLight.state)
         mt.update()
     }
 

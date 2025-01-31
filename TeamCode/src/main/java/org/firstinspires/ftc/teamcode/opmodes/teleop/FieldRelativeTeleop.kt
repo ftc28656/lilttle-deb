@@ -206,7 +206,7 @@ class FieldRelativeTeleop : OpMode() {
                         }
                 rightTrigger1.wasJustPressed -> when(scoringMode) {
                     ScoringMode.SAMPLES -> TeleopState.SAMPLE_HOVER
-                    ScoringMode.SPECIMEN -> TeleopState.TRAVEL
+                    ScoringMode.SPECIMEN -> TeleopState.SAMPLE_HOVER
                     }
                 else -> TeleopState.TRAVEL
             }

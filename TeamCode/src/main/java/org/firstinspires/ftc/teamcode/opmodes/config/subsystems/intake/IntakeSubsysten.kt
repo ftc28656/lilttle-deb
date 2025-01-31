@@ -50,20 +50,23 @@ class IntakeSubsysten(val hardwareMap: HardwareMap) {
     }
 
     fun update() {
-        hsv = colorSensor.normalizedColors.toHSV()
         distance = distanceSensor.getDistance(DistanceUnit.CM)
 
         // update the element that we are holding
         var previousElement = element
-        element = if (distance < LittleDebbie.intake.distanceThreshold)
-            when(hsv.hue) {
-                in LittleDebbie.intake.colorLimits.red.minHue..LittleDebbie.intake.colorLimits.red.maxHue -> IntakeElement.RED
-                in LittleDebbie.intake.colorLimits.yellow.minHue..LittleDebbie.intake.colorLimits.yellow.maxHue -> IntakeElement.YELLOW
-                in LittleDebbie.intake.colorLimits.blue.minHue..LittleDebbie.intake.colorLimits.blue.maxHue -> IntakeElement.BLUE
-                else -> IntakeElement.UNKNOWN
+        element = if (distance < LittleDebbie.intake.distanceThreshold){
+                hsv = colorSensor.normalizedColors.toHSV()
+                when(hsv.hue) {
+                    in LittleDebbie.intake.colorLimits.red.minHue..LittleDebbie.intake.colorLimits.red.maxHue -> IntakeElement.RED
+                    in LittleDebbie.intake.colorLimits.yellow.minHue..LittleDebbie.intake.colorLimits.yellow.maxHue -> IntakeElement.YELLOW
+                    in LittleDebbie.intake.colorLimits.blue.minHue..LittleDebbie.intake.colorLimits.blue.maxHue -> IntakeElement.BLUE
+                    else -> IntakeElement.UNKNOWN
+                }
             }
-        else
+        else {
+            hsv = HSV.unkown
             IntakeElement.NONE
+        }
 
         // the micro seems to timeout after 5 seconds.  This just tracks that and mokes it official so that we.
         when(state) {
