@@ -170,14 +170,13 @@ class BucketAutoP3P : OpMode() {
                 }
             }
             BucketPathStates.LINEUP_SAMPLE_1 -> {
-                if (!follower.isBusy && armOk()) {
+                if (!follower.isBusy && armOk())
                     intake.state = IntakeStates.INTAKING
-                    arm.state = ArmStates.SAMPLE_INTAKE
-                    if(armOk())
-                        stateTransition(BucketPathStates.PICKUP_SAMPLE_1) {
-                            follower.followPath(pickupSample1, true)
-                        }
-                }
+                arm.state = ArmStates.SAMPLE_INTAKE
+                if(armOk())
+                    stateTransition(BucketPathStates.PICKUP_SAMPLE_1) {
+                        follower.followPath(pickupSample1, true)
+                    }
             }
             BucketPathStates.PICKUP_SAMPLE_1 ->
                 if (!follower.isBusy || intake.element != IntakeElement.NONE)

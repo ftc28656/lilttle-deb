@@ -7,7 +7,7 @@ class DriveConfig(
     ) { }
 
 class SlewRateLimits(
-    @JvmField var accel: Double = 100.0, // max power change per second for positive changes
+    @JvmField var accel: Double = 1.0, // max power change per second for positive changes
     @JvmField var decel: Double = 100.0, // max power change per second for negative changes
 
 ){ }
